@@ -27,7 +27,7 @@ app.post("/cadastro", postRegister );
 
 app.post("/", postLogin);
 
-app.post("/nova-transacao/:tipo", async (req, res) => {
+app.post("/nova-transacao/:type", async (req, res) => {
 
     const { type } = req.params;
 
@@ -70,6 +70,26 @@ app.post("/nova-transacao/:tipo", async (req, res) => {
     }
 })
 
+app.get("/home", async (req, res) => {
+
+    const { authorization } = req.headers;
+
+    const token = authorization?.replace("Bearer ", "");
+
+
+    if (!token) return res.sendStatus(401);
+
+
+    try {
+
+        const session = await db.collection("login").findOne({ token });
+        const transitionsList = await db.collection("transacoes").find({idUsuario: session.idUsuario}).toArray();
+
+        res.send(transitionsList);
+    } catch (err) {
+        res.status(500).send(err.message)
+    }
+})
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`O servidor está rodando na porta ${PORT}!`))
